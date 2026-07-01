@@ -14,7 +14,11 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     intent: Intent
+    agente_responsavel: str | None = None
+    tarefa: str | None = None
     response: str
+    execucao: list[dict[str, str]] = Field(default_factory=list)
+    memoria: dict[str, object] | None = None
 
 
 class IntentOutput(BaseModel):

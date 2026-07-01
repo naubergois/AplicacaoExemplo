@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chat de Atendimento - Agentes</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Space+Grotesk:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #f3efe7;
+        --ink: #202530;
+        --panel: #fffaf1;
+        --line: #eadfce;
+        --brand: #ff7a18;
+        --brand2: #ffba4a;
+        --user: #263046;
+        --agent: #ffffff;
+        --muted: #697183;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: Manrope, sans-serif;
+        background: radial-gradient(circle at 6% 0, #ffe7bd 0%, transparent 38%),
+          radial-gradient(circle at 98% 5%, #ffd8c5 0%, transparent 32%),
+          linear-gradient(145deg, #f3efe7, #efe4d5 70%);
+        color: var(--ink);
+        min-height: 100vh;
+      }
+      .wrap {
+        width: min(980px, 94vw);
+        margin: 18px auto 26px;
+      }
+      .hero {
+        background: linear-gradient(130deg, #202530, #323b50 58%, #434f69);
+        color: #fff;
+        border-radius: 20px;
+        padding: 20px;
+      }
+      h1 {
+        margin: 0;
+        font: 700 clamp(1.2rem, 2.7vw, 1.8rem) "Space Grotesk", sans-serif;
+      }
+      .sub { margin-top: 8px; color: #e5ebf8; }
+      .controls {
+        margin-top: 14px;
+        display: grid;
+        gap: 10px;
+        grid-template-columns: repeat(3, minmax(150px, 1fr));
+      }
+      .controls input {
+        border: 1px solid rgba(255,255,255,.26);
+        background: rgba(255,255,255,.12);
+        color: #fff;
+        border-radius: 10px;
+        padding: 10px 12px;
+        outline: none;
+      }
+      .controls input::placeholder { color: #dbe3f5; }
+      .panel {
+        margin-top: 14px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        overflow: hidden;
+      }
+      .workspace {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 320px;
+      }
+      .memory {
+        border-left: 1px solid var(--line);
+        background: #fff6ea;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .memory h3 {
+        margin: 0;
+        font: 700 1rem "Space Grotesk", sans-serif;
+      }
+      .memory-card {
+        background: #fff;
+        border: 1px solid #ebddca;
+        border-radius: 12px;
+        padding: 10px;
+      }
+      .memory-row {
+        font-size: .86rem;
+        color: #505a6f;
+        margin-top: 4px;
+      }
+      .memory-summary {
+        white-space: pre-wrap;
+        font-size: .84rem;
+        color: #364055;
+        line-height: 1.35;
+      }
+      .memory-log {
+        max-height: 200px;
+        overflow: auto;
+        display: grid;
+        gap: 8px;
+      }
+      .memory-log-item {
+        background: #fff;
+        border: 1px solid #ebddca;
+        border-radius: 10px;
+        padding: 8px;
+        font-size: .82rem;
+      }
+      .chat {
+        height: min(65vh, 640px);
+        overflow: auto;
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .msg {
+        max-width: min(90%, 780px);
+        border-radius: 14px;
+        padding: 12px;
+        line-height: 1.45;
+        white-space: pre-wrap;
+        border: 1px solid transparent;
+      }
+      .msg.user {
+        align-self: flex-end;
+        background: var(--user);
+        color: #fff;
+      }
+      .msg.agent {
+        align-self: flex-start;
+        background: var(--agent);
+        border-color: var(--line);
+      }
+      .meta {
+        margin-bottom: 6px;
+        color: var(--muted);
+        font-size: .84rem;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .badge {
+        background: #f4ead8;
+        padding: 3px 8px;
+        border-radius: 999px;
+        font-size: .75rem;
+      }
+      .composer {
+        border-top: 1px solid var(--line);
+        padding: 10px;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+      }
+      textarea {
+        width: 100%;
+        min-height: 64px;
+        max-height: 190px;
+        resize: vertical;
+        border: 1px solid #d7c9b5;
+        border-radius: 12px;
+        padding: 10px 12px;
+        font: 500 .96rem Manrope, sans-serif;
+        color: var(--ink);
+      }
+      button {
+        border: 0;
+        border-radius: 12px;
+        padding: 0 16px;
+        font-weight: 800;
+        cursor: pointer;
+        background: linear-gradient(90deg, var(--brand), var(--brand2));
+        color: #1f2430;
+      }
+      button:disabled { opacity: .6; cursor: not-allowed; }
+      .hint { color: #5e6779; font-size: .88rem; margin-top: 10px; }
+      @media (max-width: 760px) {
+        .controls { grid-template-columns: 1fr; }
+        .composer { grid-template-columns: 1fr; }
+        button { height: 44px; }
+        .workspace { grid-template-columns: 1fr; }
+        .memory { border-left: 0; border-top: 1px solid var(--line); }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+      function App() {
+        const [customerName, setCustomerName] = React.useState("Cliente");
+        const [reservationCode, setReservationCode] = React.useState("");
+        const [draft, setDraft] = React.useState("");
+        const [sending, setSending] = React.useState(false);
+        const [memoryView, setMemoryView] = React.useState(null);
+        const [memoryLoading, setMemoryLoading] = React.useState(false);
+        const [messages, setMessages] = React.useState([
+          {
+            id: crypto.randomUUID(),
+            role: "agent",
+            text: "Ola! Digite sua mensagem para iniciar o atendimento.",
+            meta: { agente: "Sistema", intent: "-", tarefa: "Inicializacao" },
+          },
+        ]);
+
+        const chatRef = React.useRef(null);
+
+        React.useEffect(() => {
+          if (chatRef.current) {
+            chatRef.current.scrollTop = chatRef.current.scrollHeight;
+          }
+        }, [messages]);
+
+        async function carregarMemoria(nome) {
+          const cleanName = (nome || "").trim();
+          if (!cleanName) {
+            setMemoryView(null);
+            return null;
+          }
+
+          setMemoryLoading(true);
+          try {
+            const resp = await fetch(`/memory/${encodeURIComponent(cleanName)}`);
+            const data = await resp.json();
+            if (!resp.ok) {
+              throw new Error(data.detail || "Falha ao carregar memoria do cliente");
+            }
+            setMemoryView(data);
+            return data;
+          } catch (err) {
+            setMemoryView({
+              customer_name: cleanName,
+              has_memory: false,
+              summary: `Erro ao carregar memoria: ${err.message || "erro inesperado"}`,
+              recent_interactions: [],
+              langchain_history_size: 0,
+            });
+            return null;
+          } finally {
+            setMemoryLoading(false);
+          }
+        }
+
+        async function enviarMensagem() {
+          const texto = draft.trim();
+          if (!texto || sending) return;
+          const nomeAtual = (customerName || "").trim();
+
+          if (nomeAtual) {
+            await carregarMemoria(nomeAtual);
+          }
+
+          const userMsg = {
+            id: crypto.randomUUID(),
+            role: "user",
+            text: texto,
+          };
+          setMessages((prev) => [...prev, userMsg]);
+          setDraft("");
+          setSending(true);
+
+          try {
+            const resp = await fetch("/chat", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                message: texto,
+                customer_name: nomeAtual || undefined,
+                reservation_code: reservationCode || undefined,
+              }),
+            });
+
+            const data = await resp.json();
+            if (!resp.ok) {
+              throw new Error(data.detail || "Falha ao chamar o endpoint /chat");
+            }
+
+            const botMsg = {
+              id: crypto.randomUUID(),
+              role: "agent",
+              text: data.response || "Sem resposta.",
+              meta: {
+                agente: data.agente_responsavel || "Nao informado",
+                intent: data.intent || "-",
+                tarefa: data.tarefa || "-",
+              },
+            };
+            setMessages((prev) => [...prev, botMsg]);
+
+            if (data.memoria) {
+              setMemoryView((prev) => ({ ...(prev || {}), ...data.memoria }));
+            }
+            if (nomeAtual) {
+              await carregarMemoria(nomeAtual);
+            }
+          } catch (err) {
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: crypto.randomUUID(),
+                role: "agent",
+                text: `Erro: ${err.message || "erro inesperado"}`,
+                meta: { agente: "Erro", intent: "-", tarefa: "Falha de requisicao" },
+              },
+            ]);
+          } finally {
+            setSending(false);
+          }
+        }
+
+        function onKeyDown(e) {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            enviarMensagem();
+          }
+        }
+
+        return (
+          <div className="wrap">
+            <section className="hero">
+              <h1>Chat de Atendimento com Orquestracao de Agentes</h1>
+              <p className="sub">
+                Converse em tempo real e veja qual agente respondeu cada mensagem.
+              </p>
+
+              <div className="controls">
+                <input
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  placeholder="Nome do cliente"
+                />
+                <input
+                  value={reservationCode}
+                  onChange={(e) => setReservationCode(e.target.value)}
+                  placeholder="Codigo da reserva (opcional)"
+                />
+                <input value="/chat" disabled />
+              </div>
+            </section>
+
+            <section className="panel">
+              <div className="workspace">
+                <div>
+                  <div className="chat" ref={chatRef}>
+                    {messages.map((m) => (
+                      <article key={m.id} className={`msg ${m.role}`}>
+                        {m.role === "agent" && (
+                          <div className="meta">
+                            <span className="badge">Agente: {m.meta?.agente}</span>
+                            <span className="badge">Intent: {m.meta?.intent}</span>
+                            <span className="badge">Tarefa: {m.meta?.tarefa}</span>
+                          </div>
+                        )}
+                        <div>{m.text}</div>
+                      </article>
+                    ))}
+                  </div>
+
+                  <div className="composer">
+                    <textarea
+                      value={draft}
+                      onChange={(e) => setDraft(e.target.value)}
+                      onKeyDown={onKeyDown}
+                      placeholder="Digite sua mensagem... (Enter para enviar, Shift+Enter para quebrar linha)"
+                    />
+                    <button onClick={enviarMensagem} disabled={sending || !draft.trim()}>
+                      {sending ? "Enviando..." : "Enviar"}
+                    </button>
+                  </div>
+                </div>
+
+                <aside className="memory">
+                  <h3>Memoria do Cliente</h3>
+                  <div className="memory-card">
+                    <div className="memory-row"><strong>Cliente:</strong> {memoryView?.customer_name || (customerName || "Nao informado")}</div>
+                    <div className="memory-row"><strong>Status:</strong> {memoryLoading ? "Carregando..." : (memoryView?.has_memory ? "Com memoria" : "Sem memoria")}</div>
+                    <div className="memory-row"><strong>Total interacoes:</strong> {memoryView?.total_interactions ?? 0}</div>
+                    <div className="memory-row"><strong>Ultimo intent:</strong> {memoryView?.last_intent || "-"}</div>
+                    <div className="memory-row"><strong>Historico LangChain:</strong> {memoryView?.langchain_history_size ?? 0} mensagens</div>
+                    {typeof memoryView?.context_available === "boolean" && (
+                      <div className="memory-row"><strong>Contexto injetado:</strong> {memoryView.context_available ? "Sim" : "Nao"}</div>
+                    )}
+                    {typeof memoryView?.is_initial_contact === "boolean" && (
+                      <div className="memory-row"><strong>Primeiro contato:</strong> {memoryView.is_initial_contact ? "Sim" : "Nao"}</div>
+                    )}
+                  </div>
+
+                  <div className="memory-card">
+                    <div className="memory-row"><strong>Resumo de memoria</strong></div>
+                    <div className="memory-summary">{memoryView?.summary || memoryView?.context_snapshot || "Sem resumo de memoria para exibir."}</div>
+                  </div>
+
+                  <div className="memory-log">
+                    {(memoryView?.recent_interactions || []).slice(-5).reverse().map((item, idx) => (
+                      <div className="memory-log-item" key={`mem-${idx}`}>
+                        <div><strong>{item.intent || "-"}</strong> · {item.created_at || ""}</div>
+                        <div>Cliente: {(item.message || "").slice(0, 110)}</div>
+                        <div>Assistente: {(item.response || "").slice(0, 110)}</div>
+                      </div>
+                    ))}
+                  </div>
+                </aside>
+              </div>
+            </section>
+
+            <p className="hint">
+              Dica: para testar cancelamento com fluxo completo, inclua um pedido de cancelamento e um
+              codigo de reserva.
+            </p>
+          </div>
+        );
+      }
+
+      ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+    </script>
+  </body>
+</html>
