@@ -33,7 +33,7 @@
         min-height: 100vh;
       }
       .wrap {
-        width: min(980px, 94vw);
+        width: min(1240px, 96vw);
         margin: 18px auto 26px;
       }
       .hero {
@@ -71,7 +71,7 @@
       }
       .workspace {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) 320px;
+        grid-template-columns: minmax(0, 1fr) 300px 300px;
       }
       .memory {
         border-left: 1px solid var(--line);
@@ -80,6 +80,105 @@
         display: flex;
         flex-direction: column;
         gap: 10px;
+      }
+      .calls {
+        border-left: 1px solid var(--line);
+        background: #f4f7ff;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .calls h3 {
+        margin: 0;
+        font: 700 1rem "Space Grotesk", sans-serif;
+      }
+      .calls-hint {
+        font-size: .78rem;
+        color: #5b6478;
+      }
+      .calls-list {
+        display: grid;
+        gap: 8px;
+        max-height: 460px;
+        overflow: auto;
+      }
+      .call-item {
+        background: #fff;
+        border: 1px solid #d9e1f5;
+        border-left: 4px solid #4f6bd8;
+        border-radius: 10px;
+        padding: 8px 10px;
+        font-size: .8rem;
+      }
+      .call-item.tool {
+        border-left-color: #ff7a18;
+      }
+      .call-item.route {
+        border-left-color: #2fa96b;
+      }
+      .call-agent {
+        font-weight: 700;
+        color: #26304a;
+      }
+      .call-tool {
+        display: inline-block;
+        margin-top: 3px;
+        font-family: "Space Grotesk", monospace;
+        font-size: .72rem;
+        background: #eef2ff;
+        color: #3446a6;
+        padding: 2px 7px;
+        border-radius: 999px;
+      }
+      .call-tool.is-tool { background: #fff0e2; color: #b5560c; }
+      .call-detail {
+        margin-top: 5px;
+        color: #4a5468;
+        line-height: 1.3;
+      }
+      .reasoning {
+        align-self: flex-start;
+        max-width: min(90%, 780px);
+        background: #f4f0ff;
+        border: 1px dashed #c8bcf0;
+        border-radius: 14px;
+        padding: 12px;
+      }
+      .reasoning .rz-title {
+        font: 700 .82rem "Space Grotesk", sans-serif;
+        color: #5b3fb0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 6px;
+      }
+      .rz-dot {
+        width: 8px; height: 8px; border-radius: 50%;
+        background: #7c5cf0;
+        animation: pulse 1s infinite ease-in-out;
+      }
+      @keyframes pulse { 0%,100%{opacity:.3;} 50%{opacity:1;} }
+      .rz-text {
+        white-space: pre-wrap;
+        font-size: .84rem;
+        color: #3a3157;
+        line-height: 1.4;
+      }
+      .rz-steps {
+        margin-top: 8px;
+        display: grid;
+        gap: 4px;
+      }
+      .rz-step {
+        font-size: .76rem;
+        color: #52506b;
+      }
+      .rz-step code {
+        background: #ece6ff;
+        padding: 1px 5px;
+        border-radius: 6px;
+        color: #5b3fb0;
       }
       .memory h3 {
         margin: 0;
@@ -184,12 +283,125 @@
       }
       button:disabled { opacity: .6; cursor: not-allowed; }
       .hint { color: #5e6779; font-size: .88rem; margin-top: 10px; }
+
+      /* ===== Seccao didatica: como o LangChain e usado ===== */
+      .edu {
+        margin-top: 18px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 18px 18px 6px;
+      }
+      .edu h2 {
+        margin: 0 0 4px;
+        font: 700 clamp(1.05rem, 2.2vw, 1.4rem) "Space Grotesk", sans-serif;
+      }
+      .edu .edu-lead {
+        color: var(--muted);
+        margin: 0 0 14px;
+        font-size: .92rem;
+      }
+      .edu .steps {
+        display: grid;
+        gap: 8px;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        margin-bottom: 14px;
+      }
+      .edu .step {
+        background: #fff6ea;
+        border: 1px solid #ebddca;
+        border-radius: 12px;
+        padding: 10px;
+      }
+      .edu .step .num {
+        display: inline-flex;
+        width: 22px; height: 22px;
+        align-items: center; justify-content: center;
+        border-radius: 999px;
+        background: linear-gradient(90deg, var(--brand), var(--brand2));
+        color: #1f2430;
+        font-weight: 800; font-size: .8rem;
+        margin-bottom: 6px;
+      }
+      .edu .step strong { display: block; font-size: .9rem; }
+      .edu .step span { font-size: .8rem; color: #5e6779; }
+      .edu details {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        margin-bottom: 10px;
+        background: #fff;
+        overflow: hidden;
+      }
+      .edu summary {
+        cursor: pointer;
+        list-style: none;
+        padding: 12px 14px;
+        font: 700 1rem "Space Grotesk", sans-serif;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .edu summary::-webkit-details-marker { display: none; }
+      .edu summary::before {
+        content: "+";
+        display: inline-flex;
+        width: 20px; height: 20px;
+        align-items: center; justify-content: center;
+        border-radius: 6px;
+        background: #f4ead8;
+        font-weight: 800;
+      }
+      .edu details[open] summary::before { content: "\2212"; }
+      .edu summary .tag {
+        margin-left: auto;
+        font: 600 .72rem Manrope, sans-serif;
+        color: #7a5a2a;
+        background: #ffe7bd;
+        padding: 3px 9px;
+        border-radius: 999px;
+      }
+      .edu .body {
+        padding: 0 14px 14px;
+        font-size: .9rem;
+        color: #384154;
+        line-height: 1.5;
+      }
+      .edu .body ul { margin: 8px 0; padding-left: 18px; }
+      .edu .body li { margin: 4px 0; }
+      .edu .body .file {
+        font: 600 .78rem "Space Grotesk", monospace;
+        color: #8a4b12;
+      }
+      .edu pre {
+        background: #1f2430;
+        color: #e8ecf6;
+        border-radius: 10px;
+        padding: 12px;
+        overflow: auto;
+        font: 500 .8rem ui-monospace, SFMono-Regular, Menlo, monospace;
+        line-height: 1.5;
+        margin: 8px 0 0;
+      }
+      .edu .callout {
+        background: #fff6ea;
+        border: 1px dashed #e2c79b;
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-size: .85rem;
+        color: #6a5327;
+        margin-top: 10px;
+      }
       @media (max-width: 760px) {
         .controls { grid-template-columns: 1fr; }
         .composer { grid-template-columns: 1fr; }
         button { height: 44px; }
         .workspace { grid-template-columns: 1fr; }
         .memory { border-left: 0; border-top: 1px solid var(--line); }
+        .calls { border-left: 0; border-top: 1px solid var(--line); }
+      }
+      @media (max-width: 1080px) and (min-width: 761px) {
+        .workspace { grid-template-columns: minmax(0, 1fr) 300px; }
+        .calls { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--line); }
       }
     </style>
   </head>
@@ -208,6 +420,8 @@
         const [sending, setSending] = React.useState(false);
         const [memoryView, setMemoryView] = React.useState(null);
         const [memoryLoading, setMemoryLoading] = React.useState(false);
+        const [thinking, setThinking] = React.useState(null);
+        const [deepseekCalls, setDeepseekCalls] = React.useState([]);
         const [messages, setMessages] = React.useState([
           {
             id: crypto.randomUUID(),
@@ -415,6 +629,162 @@
                   </div>
                 </aside>
               </div>
+            </section>
+
+            <section className="edu">
+              <h2>Como o LangChain e usado nesta aplicacao</h2>
+              <p className="edu-lead">
+                Explicacao didatica de cada chamada LangChain que acontece quando voce envia uma
+                mensagem: definicao do modelo, definicao dos agentes e a memoria do cliente.
+              </p>
+
+              <div className="steps">
+                <div className="step">
+                  <span className="num">1</span>
+                  <strong>Voce envia</strong>
+                  <span>A UI chama o endpoint <code>/chat</code>.</span>
+                </div>
+                <div className="step">
+                  <span className="num">2</span>
+                  <strong>Memoria</strong>
+                  <span>LangChain monta o historico do cliente.</span>
+                </div>
+                <div className="step">
+                  <span className="num">3</span>
+                  <strong>Orquestrador</strong>
+                  <span>O LLM decide qual agente atende.</span>
+                </div>
+                <div className="step">
+                  <span className="num">4</span>
+                  <strong>Agente + Tools</strong>
+                  <span>O agente responde usando o modelo e ferramentas.</span>
+                </div>
+              </div>
+
+              <details open>
+                <summary>1. Definicao do modelo (LLM)<span className="tag">app/agents/base.py</span></summary>
+                <div className="body">
+                  <p>
+                    O modelo e criado uma unica vez com a classe <code>ChatOpenAI</code> do pacote
+                    <code>langchain_openai</code>. Mesmo usando o DeepSeek, aproveitamos a interface
+                    da OpenAI porque a API do DeepSeek e compativel: basta apontar a
+                    <code>base_url</code> para o servidor deles.
+                  </p>
+                  <ul>
+                    <li><code>model</code>: qual modelo do DeepSeek sera usado (ex.: <code>deepseek-chat</code>).</li>
+                    <li><code>base_url</code>: redireciona as chamadas LangChain para a API do DeepSeek.</li>
+                    <li><code>temperature=0.2</code>: respostas mais objetivas e menos aleatorias.</li>
+                    <li><code>@lru_cache</code>: cria o modelo so uma vez e reaproveita (cache).</li>
+                  </ul>
+                  <pre>{`from langchain_openai import ChatOpenAI
+
+@lru_cache
+def get_llm() -> ChatOpenAI:
+    return ChatOpenAI(
+        model="deepseek-chat",
+        api_key=api_key,
+        base_url="https://api.deepseek.com",
+        temperature=0.2,
+    )`}</pre>
+                  <div className="callout">
+                    Ideia central: <strong>get_llm()</strong> e a "ponte" unica com o modelo. Todos os
+                    agentes chamam essa mesma funcao, garantindo configuracao consistente.
+                  </div>
+                </div>
+              </details>
+
+              <details>
+                <summary>2. Definicao dos agentes (mensagens e tools)<span className="tag">app/agents/*.py</span></summary>
+                <div className="body">
+                  <p>
+                    Cada agente (Atendimento, Vendas, Cancelamento, Reducao de Danos) recebe o mesmo
+                    modelo de <code>get_llm()</code> e conversa com ele usando os tipos de mensagem do
+                    LangChain:
+                  </p>
+                  <ul>
+                    <li><code>SystemMessage</code>: define o "papel" e as regras do agente.</li>
+                    <li><code>HumanMessage</code>: a mensagem do cliente.</li>
+                    <li><code>AIMessage</code>: a resposta que o modelo gera.</li>
+                    <li><code>ToolMessage</code>: o resultado devolvido por uma ferramenta.</li>
+                  </ul>
+                  <p>
+                    Para consultar voos, o agente usa <code>bind_tools</code>. Isso "ensina" o modelo
+                    quais ferramentas existem; o proprio modelo decide quando chamar cada uma
+                    (<em>tool calling</em>), e o codigo executa a tool e devolve o resultado num loop.
+                  </p>
+                  <pre>{`tools = ferramentas_voos()
+llm_with_tools = self.llm.bind_tools(tools)
+
+messages = [
+    SystemMessage(content="Voce e um agente de vendas..."),
+    HumanMessage(content=f"Cliente: {customer_name}\\nPedido: {message}"),
+]
+
+ai_msg = llm_with_tools.invoke(messages)   # modelo pensa
+for call in ai_msg.tool_calls:             # modelo pediu uma tool?
+    resultado = executar_tool(call)
+    messages.append(ToolMessage(content=resultado, tool_call_id=call["id"]))`}</pre>
+                  <div className="callout">
+                    O <strong>Orquestrador</strong> tambem e um agente: ele faz um simples
+                    <code>llm.invoke(prompt)</code> e le a resposta para escolher entre atendimento,
+                    vendas ou cancelamento. Veja o badge "Agente" acima de cada resposta no chat.
+                  </div>
+                </div>
+              </details>
+
+              <details>
+                <summary>3. Memoria do cliente com LangChain<span className="tag">app/memory/store.py</span></summary>
+                <div className="body">
+                  <p>
+                    Antes de responder, a aplicacao reconstroi o historico recente do cliente como
+                    uma lista de mensagens LangChain. Cada interacao antiga vira um par
+                    <code>HumanMessage</code> (pergunta) + <code>AIMessage</code> (resposta):
+                  </p>
+                  <pre>{`def build_langchain_history(self, customer_name, limit=6):
+    history = []
+    for item in self.get_recent_interactions(customer_name, limit):
+        history.append(HumanMessage(content=item["message"]))
+        history.append(AIMessage(content=item["response"]))
+    return history   # memoria no formato que o LLM entende`}</pre>
+                  <p>Esse historico e resumido em texto e injetado no prompt do agente:</p>
+                  <pre>{`[HISTORICO RECENTE - LANGCHAIN]
+- Cliente: Quero voar de Recife para Sao Paulo
+- Assistente: Encontrei opcoes de voo direto...`}</pre>
+                  <p>A memoria tem tres camadas complementares:</p>
+                  <ul>
+                    <li><strong>LangChain messages</strong>: historico da conversa (Human/AI) para o modelo.</li>
+                    <li><strong>SQLite</strong>: perfil estruturado (origens, destinos, reservas).</li>
+                    <li><strong>ChromaDB</strong>: memoria textual/semantica das interacoes.</li>
+                  </ul>
+                  <div className="callout">
+                    O painel "Memoria do Cliente" ao lado do chat mostra exatamente esses dados: o
+                    campo <strong>Historico LangChain</strong> conta quantas mensagens foram
+                    reconstruidas para dar contexto ao modelo.
+                  </div>
+                </div>
+              </details>
+
+              <details>
+                <summary>4. Orquestracao do fluxo com LangGraph<span className="tag">app/graph.py</span></summary>
+                <div className="body">
+                  <p>
+                    Tudo isso e coordenado por um grafo (<code>StateGraph</code> do LangGraph). Ele
+                    liga os nos na ordem certa: primeiro o orquestrador decide o intent e, com uma
+                    aresta condicional, encaminha para o agente correto.
+                  </p>
+                  <pre>{`builder.set_entry_point("orquestrador")
+builder.add_conditional_edges("orquestrador", route_intent, {
+    "atendimento": "atendimento",
+    "vendas": "vendas",
+    "cancelamento": "reducao_danos",  # retencao antes de cancelar
+})
+builder.add_edge("reducao_danos", "cancelamento")`}</pre>
+                  <div className="callout">
+                    Resumo do caminho: <strong>mensagem</strong> &rarr; memoria (LangChain) &rarr;
+                    orquestrador (LLM) &rarr; agente (LLM + tools) &rarr; resposta + memoria atualizada.
+                  </div>
+                </div>
+              </details>
             </section>
 
             <p className="hint">

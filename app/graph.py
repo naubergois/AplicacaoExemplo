@@ -25,10 +25,22 @@ class ConversationState(TypedDict, total=False):
     resposta_retencao: str
     response: str
     execution_trace: list[dict[str, str]]
+    precomputed_decision: dict[str, str]
 
 
 def orchestrator_node(state: ConversationState) -> ConversationState:
     trace = state.get("execution_trace") or []
+
+    precomputed = state.get("precomputed_decision")
+    if precomputed:
+        return {
+            "intent": precomputed.get("intent", "atendimento"),
+            "agente_responsavel": precomputed.get("agente_responsavel", "Agente de Atendimento"),
+            "tarefa": precomputed.get("tarefa", "Atendimento geral"),
+            "avaliacao_orquestrador": precomputed.get("avaliacao_orquestrador", ""),
+            "execution_trace": trace,
+        }
+
     if state.get("is_initial_contact", False):
         trace.append(
             {

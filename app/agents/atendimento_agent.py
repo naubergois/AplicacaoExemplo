@@ -97,6 +97,21 @@ class AtendimentoAgent:
             messages.append(ai_msg)
 
             tool_calls = getattr(ai_msg, "tool_calls", None) or []
+            if execution_trace is not None:
+                if tool_calls:
+                    escolhidas = ", ".join(str(c.get("name", "?")) for c in tool_calls)
+                    detalhe = f"Modelo decidiu chamar tool(s): {escolhidas}"
+                else:
+                    detalhe = "Modelo gerou resposta final (sem tool)"
+                execution_trace.append(
+                    {
+                        "etapa": "llm",
+                        "agente": "Agente de Atendimento",
+                        "tool": "llm:deepseek",
+                        "detalhe": detalhe,
+                    }
+                )
+
             if not tool_calls:
                 return str(ai_msg.content)
 
@@ -124,4 +139,18 @@ class AtendimentoAgent:
 
                 messages.append(ToolMessage(content=resultado, tool_call_id=call.get("id", "")))
 
-        return "Nao foi possivel concluir o atendimento neste momento. Tente novamente."
+        if execution_trace is not None:
+            execution_trace.append(
+                {
+                    "etapa": "llm",
+                    "agente": "Agente de Atendimento",
+                    "tool": "llm:deepseek",
+                    "detalhe": "Fechamento forcado: sintetizando resposta com os dados coletados",
+                }
+            )
+        final_msg = self.llm.invoke(messages)
+        texto = str(final_msg.content).strip()
+        return texto or (
+            "Consegui reunir as informacoes disponiveis, mas preciso de um detalhe adicional "
+            "para concluir. Pode me dizer a cidade, origem/destino ou data que deseja consultar?"
+        )

@@ -39,4 +39,13 @@ Diretrizes:
 - Se nao houver alternativa segura no contexto, diga que vai encaminhar para cancelamento.
 - Finalize perguntando se o cliente deseja seguir com uma alternativa ou confirmar o cancelamento.
 """.strip()
+        if execution_trace is not None:
+            execution_trace.append(
+                {
+                    "etapa": "llm",
+                    "agente": "Agente de Reducao de Danos",
+                    "tool": "llm:deepseek",
+                    "detalhe": "Chamada ao modelo para tentativa de retencao",
+                }
+            )
         return self.llm.invoke(prompt).content

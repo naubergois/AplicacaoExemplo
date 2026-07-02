@@ -20,6 +20,33 @@ def orchestrator_evaluate(
     return _orchestrator.evaluate_case(message, execution_trace=execution_trace)
 
 
+def orchestrator_stream_reasoning(message: str):
+    """Faz streaming do raciocinio do orquestrador (DeepSeek) token a token.
+
+    Retorna (via generator) fragmentos de texto do raciocinio e, ao final,
+    entrega o texto bruto acumulado atraves de StopIteration.value.
+    """
+    prompt = _orchestrator.build_prompt(message)
+    partes: list[str] = []
+    for chunk in _orchestrator.llm.stream(prompt):
+        token = getattr(chunk, "content", "") or ""
+        if token:
+            partes.append(token)
+            yield token
+    return "".join(partes)
+
+
+def orchestrator_parse(raw: str) -> dict[str, str]:
+    return _orchestrator.parse_decision(raw)
+
+
+def orchestrator_register(
+    decision: dict[str, str],
+    execution_trace: list[dict[str, str]] | None = None,
+) -> dict[str, str]:
+    return _orchestrator.register(decision, execution_trace=execution_trace)
+
+
 def atendimento_response(
     message: str,
     customer_name: str | None = None,

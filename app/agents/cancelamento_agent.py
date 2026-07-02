@@ -43,4 +43,13 @@ Diretrizes:
 - Se faltar codigo da reserva, solicite.
 - Se a solicitacao depender de ferramenta indisponivel ou politica nao estabelecida, nao invente resposta: informe limitacao e encaminhe para a equipe humana.
 """.strip()
+        if execution_trace is not None:
+            execution_trace.append(
+                {
+                    "etapa": "llm",
+                    "agente": "Agente de Cancelamento",
+                    "tool": "llm:deepseek",
+                    "detalhe": "Chamada ao modelo para gerar procedimento de cancelamento",
+                }
+            )
         return self.llm.invoke(prompt).content
