@@ -172,6 +172,19 @@ class FlightInfoAgent:
             rows = conn.execute(query, params).fetchall()
         return rows
 
+    def available_routes(self, max_rotas: int = 40) -> list[sqlite3.Row]:
+        query = (
+            "SELECT origin_city, origin_iata, destination_city, destination_iata, "
+            "COUNT(*) AS total_voos, MIN(price_brl) AS menor_preco, "
+            "MAX(price_brl) AS maior_preco, MIN(departure_time) AS proxima_saida "
+            "FROM flights WHERE seats_available > 0 "
+            "GROUP BY origin_city, origin_iata, destination_city, destination_iata "
+            "ORDER BY origin_city ASC, destination_city ASC LIMIT ?"
+        )
+        with self._connect() as conn:
+            rows = conn.execute(query, [max_rotas]).fetchall()
+        return rows
+
 
 flight_info_agent = FlightInfoAgent()
 
@@ -219,9 +232,32 @@ def melhores_ofertas_voos(destino: str | None = None, max_resultados: int = 5) -
     return _format_rows(rows)
 
 
+@tool("listar_todos_os_voos")
+def listar_todos_os_voos(max_rotas: int = 40) -> str:
+    """Lista todas as rotas/voos disponiveis (todos os destinos) com contagem, faixa de
+    preco e proxima saida. Use quando o cliente perguntar por qualquer destino, todos os
+    voos, quais destinos existem ou nao especificar origem/destino."""
+    rows = flight_info_agent.available_routes(max_rotas=max_rotas)
+    if not rows:
+        return "Nenhuma rota disponivel no momento."
+
+    linhas = ["Rotas disponiveis (todos os destinos):"]
+    for row in rows:
+        linhas.append(
+            (
+                f"{row['origin_city']}({row['origin_iata']}) -> "
+                f"{row['destination_city']}({row['destination_iata']}) | "
+                f"Voos: {row['total_voos']} | "
+                f"Preco: R$ {row['menor_preco']:.2f} a R$ {row['maior_preco']:.2f} | "
+                f"Proxima saida: {row['proxima_saida']}"
+            )
+        )
+    return "\n".join(linhas)
+
+
 def ferramentas_voos():
     """Retorna as tools oficialmente pertencentes ao agente de informacao de voos."""
-    return [buscar_voos, melhores_ofertas_voos]
+    return [buscar_voos, melhores_ofertas_voos, listar_todos_os_voos]
 
 
 def delegar_execucao_tool_voos(

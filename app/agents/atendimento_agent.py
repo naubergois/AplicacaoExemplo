@@ -74,6 +74,8 @@ class AtendimentoAgent:
                     "temperatura, previsao ou tempo em uma cidade.\n"
                     "- Use as tools buscar_voos e melhores_ofertas_voos quando o cliente pedir "
                     "disponibilidade, horario, status, rota ou preco de voo.\n"
+                    "- Use a tool listar_todos_os_voos quando o cliente perguntar por qualquer "
+                    "destino, todos os voos, quais destinos existem, ou nao especificar origem/destino.\n"
                     "- Se faltar cidade para consulta de clima, pergunte a cidade antes de responder.\n"
                     "- Se faltar origem, destino ou data para consulta de voos, pergunte os dados "
                     "minimos necessarios antes de responder.\n"

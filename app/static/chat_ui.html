@@ -254,6 +254,11 @@
         border-radius: 999px;
         font-size: .75rem;
       }
+      .badge.tool-badge {
+        background: #fff0e2;
+        color: #b5560c;
+        font-weight: 700;
+      }
       .composer {
         border-top: 1px solid var(--line);
         padding: 10px;
@@ -469,6 +474,15 @@
           }
         }
 
+        function classificarChamada(step) {
+          const etapa = step.etapa || "";
+          const tool = step.tool || "";
+          if (etapa === "roteamento") return "route";
+          if (etapa === "tool" || etapa === "delegacao") return "tool";
+          if (tool.startsWith("llm")) return "llm";
+          return "info";
+        }
+
         async function enviarMensagem() {
           const texto = draft.trim();
           if (!texto || sending) return;
@@ -486,9 +500,11 @@
           setMessages((prev) => [...prev, userMsg]);
           setDraft("");
           setSending(true);
+          setDeepseekCalls([]);
+          setThinking({ reasoning: "", steps: [], label: "Analisando a mensagem..." });
 
           try {
-            const resp = await fetch("/chat", {
+            const resp = await fetch("/chat/stream", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
@@ -498,25 +514,103 @@
               }),
             });
 
-            const data = await resp.json();
-            if (!resp.ok) {
-              throw new Error(data.detail || "Falha ao chamar o endpoint /chat");
+            if (!resp.ok || !resp.body) {
+              const data = await resp.json().catch(() => ({}));
+              throw new Error(data.detail || "Falha ao chamar o endpoint /chat/stream");
+            }
+
+            const reader = resp.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = "";
+            let finalData = null;
+            let streamError = null;
+
+            const handleEvent = (evName, payload) => {
+              if (evName === "reasoning") {
+                setThinking((prev) => ({
+                  ...(prev || { reasoning: "", steps: [] }),
+                  label: "Raciocinio do modelo (DeepSeek)...",
+                  reasoning: (prev?.reasoning || "") + (payload.token || ""),
+                }));
+              } else if (evName === "reasoning_start") {
+                setThinking((prev) => ({
+                  ...(prev || { reasoning: "", steps: [] }),
+                  label: "Raciocinio do modelo (DeepSeek)...",
+                }));
+              } else if (evName === "decision") {
+                setThinking((prev) => ({
+                  ...(prev || { reasoning: "", steps: [] }),
+                  label: `Encaminhado para ${payload.agente_responsavel || "agente"}...`,
+                }));
+              } else if (evName === "trace") {
+                const tipo = classificarChamada(payload);
+                setThinking((prev) => ({
+                  ...(prev || { reasoning: "", steps: [] }),
+                  steps: [...((prev && prev.steps) || []), payload],
+                }));
+                if (tipo === "llm" || tipo === "tool" || tipo === "route") {
+                  setDeepseekCalls((prev) => [
+                    ...prev,
+                    {
+                      id: crypto.randomUUID(),
+                      tipo,
+                      agente: payload.agente || "-",
+                      tool: payload.tool || "-",
+                      detalhe: payload.detalhe || "",
+                    },
+                  ]);
+                }
+              } else if (evName === "done") {
+                finalData = payload;
+              } else if (evName === "error") {
+                streamError = payload.detail || "Erro no streaming";
+              }
+            };
+
+            while (true) {
+              const { value, done } = await reader.read();
+              if (done) break;
+              buffer += decoder.decode(value, { stream: true });
+              const blocks = buffer.split("\n\n");
+              buffer = blocks.pop() || "";
+              for (const block of blocks) {
+                if (!block.trim()) continue;
+                let evName = "message";
+                const dataLines = [];
+                for (const line of block.split("\n")) {
+                  if (line.startsWith("event:")) evName = line.slice(6).trim();
+                  else if (line.startsWith("data:")) dataLines.push(line.slice(5).trim());
+                }
+                if (!dataLines.length) continue;
+                let payload = {};
+                try {
+                  payload = JSON.parse(dataLines.join("\n"));
+                } catch (e) {
+                  continue;
+                }
+                handleEvent(evName, payload);
+              }
+            }
+
+            if (streamError) {
+              throw new Error(streamError);
             }
 
             const botMsg = {
               id: crypto.randomUUID(),
               role: "agent",
-              text: data.response || "Sem resposta.",
+              text: (finalData && finalData.response) || "Sem resposta.",
               meta: {
-                agente: data.agente_responsavel || "Nao informado",
-                intent: data.intent || "-",
-                tarefa: data.tarefa || "-",
+                agente: (finalData && finalData.agente_responsavel) || "Nao informado",
+                intent: (finalData && finalData.intent) || "-",
+                tarefa: (finalData && finalData.tarefa) || "-",
+                tools: (finalData && finalData.tools_utilizadas) || [],
               },
             };
             setMessages((prev) => [...prev, botMsg]);
 
-            if (data.memoria) {
-              setMemoryView((prev) => ({ ...(prev || {}), ...data.memoria }));
+            if (finalData && finalData.memoria) {
+              setMemoryView((prev) => ({ ...(prev || {}), ...finalData.memoria }));
             }
             if (nomeAtual) {
               await carregarMemoria(nomeAtual);
@@ -532,6 +626,7 @@
               },
             ]);
           } finally {
+            setThinking(null);
             setSending(false);
           }
         }
@@ -562,7 +657,7 @@
                   onChange={(e) => setReservationCode(e.target.value)}
                   placeholder="Codigo da reserva (opcional)"
                 />
-                <input value="/chat" disabled />
+                <input value="/chat/stream" disabled />
               </div>
             </section>
 
@@ -577,11 +672,41 @@
                             <span className="badge">Agente: {m.meta?.agente}</span>
                             <span className="badge">Intent: {m.meta?.intent}</span>
                             <span className="badge">Tarefa: {m.meta?.tarefa}</span>
+                            {(m.meta?.tools || []).map((t, i) => (
+                              <span className="badge tool-badge" key={`t-${m.id}-${i}`}>
+                                tool: {t}
+                              </span>
+                            ))}
                           </div>
                         )}
                         <div>{m.text}</div>
                       </article>
                     ))}
+
+                    {thinking && (
+                      <div className="reasoning">
+                        <div className="rz-title">
+                          <span className="rz-dot"></span>
+                          {thinking.label || "Pensando..."}
+                        </div>
+                        {thinking.reasoning ? (
+                          <div className="rz-text">{thinking.reasoning}</div>
+                        ) : (
+                          <div className="rz-text" style={{ color: "#8a83a8" }}>
+                            Aguardando o raciocinio do modelo...
+                          </div>
+                        )}
+                        {thinking.steps && thinking.steps.length > 0 && (
+                          <div className="rz-steps">
+                            {thinking.steps.slice(-6).map((s, i) => (
+                              <div className="rz-step" key={`step-${i}`}>
+                                <code>{s.agente || "-"}</code> {s.detalhe || s.etapa || ""}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   <div className="composer">
@@ -628,6 +753,30 @@
                     ))}
                   </div>
                 </aside>
+
+                <aside className="calls">
+                  <h3>Chamadas ao DeepSeek</h3>
+                  <div className="calls-hint">
+                    Cada chamada ao modelo e a tool escolhida em tempo real.
+                  </div>
+                  <div className="calls-list">
+                    {deepseekCalls.length === 0 && (
+                      <div className="calls-hint">
+                        Envie uma mensagem para ver as chamadas ao modelo e as tools acionadas.
+                      </div>
+                    )}
+                    {deepseekCalls.map((c) => (
+                      <div className={`call-item ${c.tipo}`} key={c.id}>
+                        <div className="call-agent">{c.agente}</div>
+                        <span className={`call-tool ${c.tipo === "tool" ? "is-tool" : ""}`}>
+                          {c.tipo === "tool" ? "tool: " : (c.tipo === "route" ? "rota: " : "modelo: ")}
+                          {c.tool}
+                        </span>
+                        <div className="call-detail">{c.detalhe}</div>
+                      </div>
+                    ))}
+                  </div>
+                </aside>
               </div>
             </section>
 
@@ -642,7 +791,7 @@
                 <div className="step">
                   <span className="num">1</span>
                   <strong>Voce envia</strong>
-                  <span>A UI chama o endpoint <code>/chat</code>.</span>
+                  <span>A UI chama o endpoint <code>/chat/stream</code> (streaming SSE).</span>
                 </div>
                 <div className="step">
                   <span className="num">2</span>

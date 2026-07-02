@@ -240,6 +240,13 @@ def chat_stream(payload: ChatRequest) -> StreamingResponse:
 
             result = result_holder.get("result", {}) or {}
             response_text = result.get("response", "Nao foi possivel gerar resposta.")
+            trace_final = result.get("execution_trace", execution_trace)
+            tools_utilizadas = []
+            for step in trace_final:
+                tool_nome = step.get("tool", "")
+                if step.get("etapa") in ("delegacao", "tool") and tool_nome and tool_nome != "-":
+                    if tool_nome not in tools_utilizadas:
+                        tools_utilizadas.append(tool_nome)
 
             if payload.customer_name:
                 interaction = ChatInteractionRecord(
@@ -259,7 +266,8 @@ def chat_stream(payload: ChatRequest) -> StreamingResponse:
                     "agente_responsavel": result.get("agente_responsavel"),
                     "tarefa": result.get("tarefa"),
                     "response": response_text,
-                    "execucao": result.get("execution_trace", execution_trace),
+                    "tools_utilizadas": tools_utilizadas,
+                    "execucao": trace_final,
                     "memoria": {
                         "customer_name": payload.customer_name,
                         "is_initial_contact": is_initial_contact,
